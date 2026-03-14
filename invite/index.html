@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Приглашение — ClickChat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #050A07; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+           min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #F0FAF3; }
+    .wrap { text-align: center; padding: 40px 24px; max-width: 360px; width: 100%; }
+    .logo { width: 80px; height: 80px; background: #0C1510; border: 2px solid #1DB954;
+            border-radius: 20px; display: inline-flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 20px;
+            box-shadow: 0 0 40px rgba(29,185,84,0.2); }
+    h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .sub { color: #5C8C6A; font-size: 13px; margin-bottom: 32px; }
+    .card { background: #0C1510; border: 1px solid #1A2E1F; border-radius: 20px; padding: 24px; margin-bottom: 24px; }
+    .invite-label { font-size: 11px; color: #3A5A44; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+    .username { font-size: 28px; font-weight: 900; color: #2EE46A; letter-spacing: -0.5px; }
+    .invite-text { font-size: 13px; color: #5C8C6A; margin-top: 8px; line-height: 1.6; }
+    .btn { display: inline-block; background: #1DB954; color: #fff; font-weight: 800;
+           font-size: 15px; padding: 14px 32px; border-radius: 50px; text-decoration: none;
+           box-shadow: 0 4px 20px rgba(29,185,84,0.4); transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .error { color: #F43F5E; font-size: 13px; margin-top: 16px; }
+    .enc { display: inline-flex; align-items: center; gap: 6px; background: rgba(16,217,160,0.08);
+           border: 1px solid rgba(16,217,160,0.15); border-radius: 50px;
+           padding: 6px 14px; font-size: 11px; color: #10D9A0; margin-top: 20px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #10D9A0; }
+    #status { color: #5C8C6A; font-size: 13px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">✈</div>
+  <h1>ClickChat</h1>
+  <p class="sub">Защищённый мессенджер</p>
+
+  <div class="card">
+    <div class="invite-label">Приглашение от</div>
+    <div class="username" id="uname">@…</div>
+    <div class="invite-text">Хочет общаться с тобой<br>в зашифрованном мессенджере</div>
+  </div>
+
+  <a href="#" class="btn" id="openBtn">Открыть в ClickChat</a>
+  <div id="status">Загружаем адрес сервера…</div>
+  <div class="error" id="err" style="display:none"></div>
+
+  <div class="enc"><div class="dot"></div>E2E зашифровано</div>
+</div>
+
+<script>
+  // Читаем @username из пути: /invite/danya → danya
+  const parts = location.pathname.split('/').filter(Boolean);
+  const username = parts[parts.length - 1] || '';
+  document.getElementById('uname').textContent = username ? '@' + username : '@неизвестный';
+
+  const GIST_URL = 'https://gist.githubusercontent.com/danilka1805/dcc585cdae1db8740e44249b074e6218/raw/clickchat-server.txt';
+
+  async function load() {
+    try {
+      const r = await fetch(GIST_URL + '?t=' + Date.now());
+      if (!r.ok) throw new Error('Gist недоступен');
+      const serverUrl = (await r.text()).trim();
+      if (!serverUrl.startsWith('http')) throw new Error('Некорректный адрес');
+
+      const inviteUrl = serverUrl + '/invite/' + encodeURIComponent(username);
+      const deepLink  = 'clickchat://invite/' + encodeURIComponent(username) + '?server=' + encodeURIComponent(serverUrl);
+
+      document.getElementById('openBtn').href = deepLink;
+      document.getElementById('openBtn').onclick = function(e) {
+        e.preventDefault();
+        // Пробуем deeplink, если не открылся — на веб страницу
+        window.location = deepLink;
+        setTimeout(() => { window.location = inviteUrl; }, 1500);
+      };
+      document.getElementById('status').textContent = 'Сервер найден ✓';
+      setTimeout(() => { document.getElementById('status').textContent = ''; }, 2000);
+    } catch(e) {
+      document.getElementById('status').style.display = 'none';
+      document.getElementById('err').style.display = 'block';
+      document.getElementById('err').textContent = 'Сервер сейчас недоступен. Попробуйте позже.';
+    }
+  }
+
+  if (username) load();
+  else {
+    document.getElementById('status').textContent = '';
+    document.getElementById('err').style.display = 'block';
+    document.getElementById('err').textContent = 'Неверная ссылка — username не указан.';
+  }
+</script>
+</body>
+</html>
