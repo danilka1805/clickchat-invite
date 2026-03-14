@@ -51,9 +51,14 @@
 </div>
 
 <script>
-  // Читаем @username из пути: /invite/danya → danya
-  const parts = location.pathname.split('/').filter(Boolean);
-  const username = parts[parts.length - 1] || '';
+  // Читаем @username из ?u=danya или из пути /invite/danya
+  const params = new URLSearchParams(location.search);
+  let username = params.get('u') || '';
+  if (!username) {
+    const parts = location.pathname.split('/').filter(Boolean);
+    username = parts[parts.length - 1] || '';
+    if (username === 'invite') username = '';
+  }
   document.getElementById('uname').textContent = username ? '@' + username : '@неизвестный';
 
   const GIST_URL = 'https://gist.githubusercontent.com/danilka1805/dcc585cdae1db8740e44249b074e6218/raw/clickchat-server.txt';

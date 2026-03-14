@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    // GitHub Pages SPA trick — редиректим /invite/danya → /invite/?u=danya
+    var path = location.pathname;
+    var parts = path.split('/').filter(Boolean);
+    // parts = ['clickchat-invite', 'invite', 'danya']
+    var inviteIdx = parts.indexOf('invite');
+    if (inviteIdx !== -1 && parts[inviteIdx + 1]) {
+      var username = parts[inviteIdx + 1];
+      var base = location.origin + '/' + parts[0] + '/invite/';
+      location.replace(base + '?u=' + encodeURIComponent(username));
+    } else {
+      location.replace(location.origin + '/' + parts[0] + '/');
+    }
+  </script>
+</head>
+<body></body>
+</html>
